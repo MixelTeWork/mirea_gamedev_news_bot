@@ -1,0 +1,10 @@
+token.txt
+token_dev.txt
+
+.venv
+__pycache__
+
+logs/
+db/
+/images
+secret_key_jwt.txt
