@@ -50,6 +50,12 @@ class MessageEntity(JsonObj):
         return me
 
     @staticmethod
+    def text_link(offset: int, length: int, url: str):
+        me = MessageEntity("text_link", offset, length)
+        me.url = url
+        return me
+
+    @staticmethod
     def blockquote(offset: int, length: int):
         return MessageEntity("blockquote", offset, length)
 
@@ -331,3 +337,68 @@ class ReplyParameters(JsonObj):
 
     def __init__(self, message_id: int):
         self.message_id = message_id
+
+
+class InputMedia(JsonObj):
+    # https://core.telegram.org/bots/api#inputmedia
+    type: Literal["photo", "video", "animation", "audio", "document"]
+    media: str
+    caption: str = None
+    parse_mode: Union[Literal["MarkdownV2"], None] = None
+    caption_entities: list[MessageEntity] = []
+    show_caption_above_media: bool = False
+    has_spoiler: bool = False
+
+    def __init__(self, media: str):
+        self.media = media
+
+    def set_caption(self, caption: str = None, parse_mode: Union[Literal["MarkdownV2"], None] = None,
+                    caption_entities: list[MessageEntity] = [], show_caption_above_media: bool = False, has_spoiler: bool = False):
+        self.caption = caption
+        self.parse_mode = parse_mode
+        self.caption_entities = caption_entities
+        self.show_caption_above_media = show_caption_above_media
+        self.has_spoiler = has_spoiler
+        return self
+
+
+class InputMediaPhoto(InputMedia):
+    # https://core.telegram.org/bots/api#inputmediaphoto
+    type = "photo"
+
+
+class InputMediaVideo(InputMedia):
+    # https://core.telegram.org/bots/api#inputmediavideo
+    type = "video"
+    thumbnail: str
+    cover: str
+    start_timestamp: int
+    width: int
+    height: int
+    duration: int
+    supports_streaming: bool
+
+
+class InputMediaAnimation(InputMedia):
+    # https://core.telegram.org/bots/api#inputmediaanimation
+    type = "animation"
+    thumbnail: str
+    width: int
+    height: int
+    duration: int
+
+
+class InputMediaAudio(InputMedia):
+    # https://core.telegram.org/bots/api#inputmediaaudio
+    type = "audio"
+    thumbnail: str
+    duration: int
+    performer: str
+    title: str
+
+
+class InputMediaDocument(InputMedia):
+    # https://core.telegram.org/bots/api#inputmediadocument
+    type = "document"
+    thumbnail: str
+    disable_content_type_detection: bool

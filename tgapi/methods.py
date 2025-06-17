@@ -28,6 +28,20 @@ def sendMessage(chat_id: str, text: str, message_thread_id: int = None, use_mark
     return True, Message(r["result"])
 
 
+# https://core.telegram.org/bots/api#sendmediagroup
+def sendMediaGroup(chat_id: str, message_thread_id: int = None,
+                   media: List[InputMedia] = [], reply_parameters: ReplyParameters = None):
+    ok, r = call("sendMediaGroup", {
+        "chat_id": chat_id,
+        "message_thread_id": message_thread_id,
+        "media": media,
+        "reply_parameters": reply_parameters,
+    })
+    if not ok:
+        return False, r
+    return True, [Message(v) for v in r["result"]]
+
+
 # https://core.telegram.org/bots/api#editmessagetext
 def editMessageText(chat_id: Union[int, str], message_id: int, text: str, use_markdown=False,
                     reply_markup: InlineKeyboardMarkup = None, entities: List[MessageEntity] = None):

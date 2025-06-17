@@ -19,6 +19,7 @@ app, run = create_app(__name__, AppConfig(
 
 # run(False, lambda: init_values(True))
 run(False)
+# run(True, port=5000)
 
 if __name__ == "__main__":
     print("listening for updates...")
