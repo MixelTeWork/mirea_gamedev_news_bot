@@ -42,4 +42,8 @@ def help(bot: Bot, args: tgapi.BotCmdArgs):  # noqa: F811
     txt += "\n".join(format_cmd(cmd) for cmd in bot.get_my_commands())
     txt += "\n\n👨‍🔧 Для админов:\n"
     txt += "\n".join(format_cmd(cmd) for cmd in bot.get_my_commands(True))
+    txt += "\n\\s - тихий режим"
     return txt
+
+
+import bot.commands

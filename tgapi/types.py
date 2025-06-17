@@ -86,7 +86,7 @@ class Message(ParsedJson):
     text: str = ""
     date: int = 0
 
-    def _parse_field(self, key: str, v: Any):
+    def _parse_field(self, key: str, v: Any, json):
         if key == "from":
             return "sender", User(v)
         if key == "reply_to_message":
@@ -102,7 +102,7 @@ class InlineQuery(ParsedJson):
     offset: str = ""
     chat_type: Literal["sender", "private", "group", "supergroup", "channel"] = ""
 
-    def _parse_field(self, key: str, v: Any):
+    def _parse_field(self, key: str, v: Any, json):
         if key == "from":
             return "sender", User(v)
 
@@ -121,7 +121,7 @@ class CallbackQuery(ParsedJson):
     data: str = ""
     game_short_name: str = ""
 
-    def _parse_field(self, key: str, v: Any):
+    def _parse_field(self, key: str, v: Any, json):
         if key == "from":
             return "sender", User(v)
 
@@ -135,7 +135,7 @@ class ChosenInlineResult(ParsedJson):
     inline_message_id: str = ""
     query: str = ""
 
-    def _parse_field(self, key: str, v: Any):
+    def _parse_field(self, key: str, v: Any, json):
         if key == "from":
             return "sender", User(v)
 

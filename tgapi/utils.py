@@ -65,7 +65,7 @@ class ParsedJson:
         a = self.__annotations__
         for key in json:
             v = json[key]
-            r = self._parse_field(key, v)
+            r = self._parse_field(key, v, json)
             if r is not None:
                 key, v = r
             elif key in a:
@@ -75,7 +75,7 @@ class ParsedJson:
             if hasattr(self, key):
                 setattr(self, key, v)
 
-    def _parse_field(self, key: str, v: Any) -> Union[tuple[str, Any], None]:
+    def _parse_field(self, key: str, v: Any, json: dict[str, Any]) -> Union[tuple[str, Any], None]:
         return None
 
     def __repr__(self) -> str:

@@ -1,5 +1,6 @@
 token.txt
 token_dev.txt
+token_vk.txt
 
 .venv
 __pycache__
