@@ -30,11 +30,22 @@ target_metadata = SqlAlchemyBase.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-issqlite = os.environ.get("dev", "0") == "1"
-if issqlite:
-    config.set_main_option("sqlalchemy.url", f"sqlite:///{bafser_config.db_dev_path}?check_same_thread=False")
+if os.environ.get("dev", "0") == "1":
+    db_path = bafser_config.db_dev_path
+    issqlite = True
 else:
-    config.set_main_option("sqlalchemy.url", f"mysql+pymysql://{bafser_config.db_path}?charset=UTF8mb4")
+    db_path = bafser_config.db_path
+    issqlite = not bafser_config.db_mysql
+
+if issqlite:
+    config.set_main_option("sqlalchemy.url", f"sqlite:///{db_path}?check_same_thread=False")
+    if not os.path.exists(db_path):
+        dirname = os.path.dirname(db_path)
+        if dirname != "":
+            os.makedirs(dirname, exist_ok=True)
+        with open(db_path, "w"): pass
+else:
+    config.set_main_option("sqlalchemy.url", f"mysql+pymysql://{db_path}?charset=UTF8mb4")
 
 
 def run_migrations_offline() -> None:
