@@ -62,13 +62,15 @@ def init_values(dev=False, cmd=False):
         write_cfg(f, "token", bot_token, "<token>")
         write_cfg(f, "botname (like @mycoolbot)", botname, "<botname>")
         f.write(webhook_token + "\n")
-        write_cfg(f, "host url", url, "<url>")
+        url = write_cfg(f, "host url", url, "<url>", lambda v: v.rstrip("/") + "/" if v else v)
     print()
     with open(token_vk_path, "w", encoding="utf8") as f:
         print(f"->{token_vk_path}")
         print("  VK callback")
         write_cfg(f, "confirmation code", confirmation, "<confirmation>")
         f.write(secret)
+        print("  Callback url:")
+        print(url + "api/vk_callback")
         print("  Secret key:")
         print(secret)
 
@@ -92,14 +94,18 @@ def input_def(d: str):
     return inp
 
 
-def write_cfg(f, name, cur, d):
+def write_cfg(f, name, cur, d, ff=None):
     print()
     print(f"  Enter {name}:")
     if cur is None:
         cur = d
     else:
         print(cur)
-    f.write(input_def(cur) + "\n")
+    v = input_def(cur)
+    if ff:
+        v = ff(v)
+    f.write(v + "\n")
+    return v
 
 
 if __name__ == "__main__":
