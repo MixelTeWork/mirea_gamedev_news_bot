@@ -3,6 +3,7 @@ token_dev.txt
 token_vk.txt
 
 .venv
+venv/
 __pycache__
 
 logs/
