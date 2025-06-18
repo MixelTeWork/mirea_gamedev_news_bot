@@ -38,11 +38,17 @@ def help(bot: Bot, args: tgapi.BotCmdArgs):  # noqa: F811
 
         return "\n".join(f"/{cmd} {h}" for h in hints) + f"\n - {desc}"
 
-    txt = "💠 Команды\n\n👥 Для всех:\n"
-    txt += "\n".join(format_cmd(cmd) for cmd in bot.get_my_commands())
-    txt += "\n\n👨‍🔧 Для админов:\n"
-    txt += "\n".join(format_cmd(cmd) for cmd in bot.get_my_commands(True))
-    txt += "\n\\s - тихий режим"
+    cmds_all = [format_cmd(cmd) for cmd in bot.get_my_commands()]
+    cmds_adm = [format_cmd(cmd) for cmd in bot.get_my_commands(True)]
+
+    txt = "💠 Команды"
+    if len(cmds_all) > 0:
+        txt += "\n\n👥 Для всех:\n"
+        txt += "\n".join(cmds_all)
+    if len(cmds_adm) > 0:
+        txt += "\n\n👨‍🔧 Для админов:\n"
+        txt += "\n".join(cmds_adm)
+    txt += "\n\n\\s - тихий режим"
     return txt
 
 
