@@ -13,7 +13,7 @@ def getUpdates(offset: int = 0, timeout: int = 0):
 # https://core.telegram.org/bots/api#sendmessage
 def sendMessage(chat_id: str, text: str, message_thread_id: int = None, use_markdown=False,
                 reply_markup: InlineKeyboardMarkup = None, reply_parameters: ReplyParameters = None,
-                entities: List[MessageEntity] = None):
+                entities: List[MessageEntity] = None, link_preview_options: LinkPreviewOptions = None):
     ok, r = call("sendMessage", {
         "chat_id": chat_id,
         "message_thread_id": message_thread_id,
@@ -22,6 +22,7 @@ def sendMessage(chat_id: str, text: str, message_thread_id: int = None, use_mark
         "reply_markup": reply_markup,
         "reply_parameters": reply_parameters,
         "entities": entities,
+        "link_preview_options": link_preview_options,
     })
     if not ok:
         return False, r

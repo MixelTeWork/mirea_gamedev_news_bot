@@ -79,6 +79,14 @@ class MessageEntity(JsonObj):
     def len(text: str):
         return len(text.encode("utf-16-le")) // 2
 
+    def copy(self):
+        me = MessageEntity(self.type, self.offset, self.length)
+        me.url = self.url
+        me.user = self.user
+        me.language = self.language
+        me.custom_emoji_id = self.custom_emoji_id
+        return me
+
 
 class Message(ParsedJson):
     __id_field__ = "message_id"
@@ -337,6 +345,21 @@ class ReplyParameters(JsonObj):
 
     def __init__(self, message_id: int):
         self.message_id = message_id
+
+
+class LinkPreviewOptions(JsonObj):
+    # https://core.telegram.org/bots/api#linkpreviewoptions
+    is_disabled: bool
+    url: str
+    prefer_small_media: bool
+    prefer_large_media: bool
+    show_above_text: bool
+
+    @staticmethod
+    def disable():
+        lpo = LinkPreviewOptions()
+        lpo.is_disabled = True
+        return lpo
 
 
 class InputMedia(JsonObj):
