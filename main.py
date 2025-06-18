@@ -7,8 +7,8 @@ import vkapi
 
 DEV_MODE = "dev" in sys.argv
 RUN = __name__ == "__main__"
-RUN_FLASK_SERVER = RUN and "server" in sys.argv
-RUN_BOT_LONG_POLL = RUN and not RUN_FLASK_SERVER
+RUN_BOT_LONG_POLL = RUN and "poll" in sys.argv
+RUN_FLASK_SERVER = RUN and not RUN_BOT_LONG_POLL
 
 tgapi.setup("token_dev.txt" if DEV_MODE else "token.txt")
 vkapi.setup()
@@ -17,11 +17,9 @@ app, run = create_app(__name__, AppConfig(
     DEV_MODE=DEV_MODE,
 ))
 
-# run(__name__ == "__main__", lambda: init_dev_values(True), port=5001)
 
 # run(False, lambda: init_values(True))
-run(RUN_FLASK_SERVER)
-# run(True, port=5000)
+run(RUN_FLASK_SERVER, port=5000)
 
 if RUN_BOT_LONG_POLL:
     print("listening for updates...")

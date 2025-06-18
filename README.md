@@ -58,12 +58,18 @@ python scripts\configureWebhook.py delete
 ### Run
 
 ```cmd
-python main.py [dev] [server]
+python main.py
+```
+```cmd
+python main.py [dev] [poll]
 ```
 * dev - run in dev mode (use `token_dev.txt` instead of `token.txt`)
-* server - if passed start flask server otherwise run long polling to get bot updates
+* poll - if passed run long polling to get bot updates, otherwise start flask server
 
-WSGI:
+#### WSGI:
+
+flask app (flask version: 2.1.2)
+
 ```py
 from main import app
 ```
