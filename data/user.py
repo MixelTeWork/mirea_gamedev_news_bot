@@ -36,7 +36,9 @@ class User(UserBase):
 
     @staticmethod
     def create_admin(db_sess: Session):
-        return User.new(db_sess, 0, False, "Админ", "", "admin", "en")
+        u = User.new(db_sess, 0, False, "Админ", "", "admin", "en")
+        u.add_role(u, Roles.admin)
+        return u
 
     def __repr__(self):
         return f"<User> [{self.id} {self.id_tg}] {self.username}"
@@ -53,13 +55,6 @@ class User(UserBase):
         if self.username != "":
             return f"@{self.username}"
         return f"🥷 {self.get_name()}"
-
-    _is_admin = None
-
-    def is_admin(self):
-        if self._is_admin is None:
-            self._is_admin = self.has_role(Roles.admin)
-        return self._is_admin
 
     @staticmethod
     def new_from_data(db_sess: Session, data: tgapi.User):

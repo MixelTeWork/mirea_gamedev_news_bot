@@ -8,6 +8,7 @@ ME = tgapi.MessageEntity
 
 @Bot.add_command("set_news_chat", (None, ("Новости будут транслироваться в данный чат", "[\\s]")))
 @Bot.cmd_connect_db
+@Bot.cmd_for_admin
 def set_news_chat(bot: Bot, args: tgapi.BotCmdArgs):
     s = silent_mode(bot, args)
     config = Config.get(bot.db_sess)
