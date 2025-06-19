@@ -42,7 +42,7 @@ video_text = ["первое", "второе", "третье", "четвёрто�
 @use_db_session()
 def on_new_post(post: vkapi.Post, db_sess: Session):
     config = Config.get(db_sess)
-    if config.chat_id is None or config.chat_thread_id is None:
+    if config.chat_id is None:
         return
 
     repost = post.copy_history[0] if len(post.copy_history) > 0 else None

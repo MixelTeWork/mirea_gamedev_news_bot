@@ -112,11 +112,12 @@ class Bot:
         def wrapped(bot: Bot, args: BotCmdArgs, **kwargs):
             if bot.chat is None or bot.sender is None:
                 return "403(500!)"
-            ok, r = getChatMember(bot.chat.id, bot.sender.id)
-            if not ok:
-                return "403(500)"
-            if r.status != "creator" and r.status != "administrator":
-                return "Эта команда только для админов"
+            if bot.chat.type != "private":
+                ok, r = getChatMember(bot.chat.id, bot.sender.id)
+                if not ok:
+                    return "403(500)"
+                if r.status != "creator" and r.status != "administrator":
+                    return "Эта команда только для админов"
             return fn(bot, args, **kwargs)
         return wrapped
 

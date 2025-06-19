@@ -73,3 +73,10 @@ flask app (flask version: 2.1.2)
 ```py
 from main import app
 ```
+
+### Usage
+
+#### Commands:
+
+* /help - display list of commands
+* /set_news_chat - news will be sent to chat where command was sent
