@@ -14,8 +14,9 @@ pip install -r requirements.txt
 ```cmd
 python scripts\init_values.py
 ```
+(Command can be called without requirements installed)
 
-Command will create files in project root:
+Command will create files and folders in project root:
 
 `token.txt`
 ```
@@ -31,6 +32,8 @@ Command will create files in project root:
 <secret key - random string>
 ```
 
+Empty folders (docker volume): `db` `images` `logs`
+
 #### Webhook configuration
 set
 ```cmd
@@ -40,6 +43,8 @@ delete
 ```cmd
 python scripts\configureWebhook.py delete
 ```
+
+(Command requires only `requests` lib)
 
 #### Настройка VK Callback
 1) Откройте управление сообществом
@@ -58,6 +63,12 @@ python scripts\configureWebhook.py delete
 ### Run
 
 ```cmd
+docker compose up
+```
+
+#### Without docker
+```cmd
+alembic upgrade head
 python main.py
 ```
 ```cmd
@@ -66,13 +77,6 @@ python main.py [dev] [poll]
 * dev - run in dev mode (use `token_dev.txt` instead of `token.txt`)
 * poll - if passed run long polling to get bot updates, otherwise start flask server
 
-#### WSGI:
-
-flask app (flask version: 2.1.2)
-
-```py
-from main import app
-```
 
 ### Usage
 

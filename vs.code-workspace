@@ -21,7 +21,8 @@
                 "program": "main.py",
                 "console": "integratedTerminal",
                 "args": [
-                    "dev"
+                    "dev",
+                    // "poll"
                 ]
             }
         ]

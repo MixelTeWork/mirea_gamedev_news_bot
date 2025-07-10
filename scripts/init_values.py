@@ -1,22 +1,24 @@
-import sys
+from random import choices
 import os
+import string
+import sys
+import uuid
 
 
 def init_values(dev=False, cmd=False):
     print(f"init_values {dev=}")
-    if cmd:
-        add_parent_to_path()
+    # if cmd:
+    #     add_parent_to_path()
 
-    os.environ["dev"] = "1" if dev else "0"
-    import alembic.config
-    import uuid
-    from bafser import db_session, init_db_values, randstr
+    # os.environ["dev"] = "1" if dev else "0"
+    # import alembic.config
+    # from bafser import db_session, init_db_values
     # from data._roles import Roles
     # from data.user import User
 
-    if cmd or not dev:
-        alembic.config.main(argv=["upgrade", "head"])
-        init_db_values(dev)
+    # if cmd or not dev:
+    #     alembic.config.main(argv=["upgrade", "head"])
+    #     init_db_values(dev)
 
     # db_session.global_init(dev)
     # db_sess = db_session.create_session()
@@ -55,6 +57,14 @@ def init_values(dev=False, cmd=False):
             secret = f.readline().strip()
     except Exception:
         pass
+    try:
+        with open("secret_key_jwt.txt", "w", encoding="utf8") as f:
+            f.write(str(uuid.uuid4()))
+        os.makedirs("db", exist_ok=True)
+        os.makedirs("images", exist_ok=True)
+        os.makedirs("logs", exist_ok=True)
+    except Exception:
+        pass
 
     with open(token_path, "w", encoding="utf8") as f:
         print(f"->{token_path}")
@@ -85,6 +95,10 @@ def add_parent_to_path():
     current = os.path.dirname(os.path.realpath(__file__))
     parent = os.path.dirname(current)
     sys.path.append(parent)
+
+
+def randstr(N: int):
+    return ''.join(choices(string.ascii_uppercase + string.digits, k=N))
 
 
 def input_def(d: str):
