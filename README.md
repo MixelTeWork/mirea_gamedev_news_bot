@@ -69,6 +69,11 @@ docker compose up
 #### Without docker
 ```cmd
 alembic upgrade head
+gunicorn 'main:app' --bind=0.0.0.0:5000
+```
+or
+```cmd
+alembic upgrade head
 python main.py
 ```
 ```cmd
