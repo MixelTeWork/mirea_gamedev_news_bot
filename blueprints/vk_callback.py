@@ -34,7 +34,7 @@ def vk_callback():
     return "ok"
 
 
-re_link = re.compile("\\[(.*)\\|(.*)\\]")
+re_link = re.compile("\\[([-a-zA-Z0-9$_.+!*'(),\\/&?=:%]+)\\|(.+?)\\]")
 re_url = re.compile("https?:\\/\\/(?:www\\.)?([-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*))")
 video_text = ["первое", "второе", "третье", "четвёртое", "пятое"]
 
@@ -153,12 +153,16 @@ def on_new_post(post: vkapi.Post, db_sess: Session):
         if not m_link and not m_url:
             break
         if m_link and (not m_url or m_link.start() < m_url.start()):
+            url = m_link.group(1)
             p1 = text[:m_link.start()]
             p2 = m_link.group(2)
             p3 = text[m_link.end():]
             text = p1 + p2 + p3
             search_start = len(p1 + p2)
-            entities.append(ME.text_link(ME.len(p1), ME.len(p2), m_link.group(1)))
+            if not re_url.match(url):
+                url = "https://vk.com/" + url
+            if re_url.match(url):
+                entities.append(ME.text_link(ME.len(p1), ME.len(p2), url))
         else:
             url = m_url.group(0)
             url_text = m_url.group(1)
