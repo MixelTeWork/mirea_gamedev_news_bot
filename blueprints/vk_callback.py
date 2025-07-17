@@ -34,8 +34,9 @@ def vk_callback():
     return "ok"
 
 
-re_link = re.compile("\\[([-a-zA-Z0-9$_.+!*'(),\\/&?=:%]+)\\|(.+?)\\]")
-re_url = re.compile("https?:\\/\\/(?:www\\.)?([-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*))")
+re_link = re.compile("\\[(#alias\\|)?([-a-zA-Z0-9$_.+!*'(),\\/&?=:%]+)\\|(.+?)\\]")
+re_url_full = re.compile("https?:\\/\\/(?:www\\.)?([-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*))")
+re_url = re.compile("(https?:\\/\\/)?(?:www\\.)?([-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*))")
 video_text = ["первое", "второе", "третье", "четвёртое", "пятое"]
 
 
@@ -149,13 +150,13 @@ def on_new_post(post: vkapi.Post, db_sess: Session):
 
     while True:
         m_link = re_link.search(text, search_start)
-        m_url = re_url.search(text, search_start)
+        m_url = re_url_full.search(text, search_start)
         if not m_link and not m_url:
             break
         if m_link and (not m_url or m_link.start() < m_url.start()):
-            url = m_link.group(1)
+            url = m_link.group(2)
             p1 = text[:m_link.start()]
-            p2 = m_link.group(2)
+            p2 = m_link.group(3)
             p3 = text[m_link.end():]
             text = p1 + p2 + p3
             search_start = len(p1 + p2)
