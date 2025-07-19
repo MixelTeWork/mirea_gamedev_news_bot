@@ -16,8 +16,10 @@ class Bot:
     callback_query: CallbackQuery = None
     inline_query: InlineQuery = None
     chosen_inline_result: ChosenInlineResult = None
+    my_chat_member: ChatMemberUpdated = None
 
     _commands: dict[str, Tuple[cmd_fn, Tuple[cmd_dsc, cmd_dsc]]] = {}
+    _on: dict[Callable, list[Callable[["Bot"], None]]] = {}
     _sender: Union[User, None] = None
     chat: Union[Chat, None] = None
     TextWrongCommand = "Wrong command"
@@ -107,6 +109,15 @@ class Bot:
             return fn
         return wrapper
 
+    @classmethod
+    def on(cls, event: Callable):
+        def wrapper(fn: cmd_fn):
+            if event not in cls._on:
+                cls._on[event] = []
+            cls._on[event].append(fn)
+            return fn
+        return wrapper
+
     @staticmethod
     def cmd_for_admin(fn):
         def wrapped(bot: Bot, args: BotCmdArgs, **kwargs):
@@ -127,6 +138,7 @@ class Bot:
         self.callback_query = update.callback_query
         self.inline_query = update.inline_query
         self.chosen_inline_result = update.chosen_inline_result
+        self.my_chat_member = update.my_chat_member
         self.sender = None
         self.chat = None
         self.logger._reset()
@@ -134,16 +146,30 @@ class Bot:
             self.sender = self.message.sender
             self.chat = self.message.chat
             self.on_message()
+            self._call_on(Bot.on_message)
         if update.callback_query:
             self.sender = self.callback_query.sender
             self.chat = self.callback_query.message.chat
             self.on_callback_query()
+            self._call_on(Bot.on_callback_query)
         if update.inline_query:
             self.sender = self.inline_query.sender
             self.on_inline_query()
+            self._call_on(Bot.on_inline_query)
         if update.chosen_inline_result:
             self.sender = self.chosen_inline_result.sender
             self.on_chosen_inline_result()
+            self._call_on(Bot.on_chosen_inline_result)
+        if update.my_chat_member:
+            self.sender = self.my_chat_member.sender
+            self.chat = self.my_chat_member.chat
+            self.on_my_chat_member()
+            self._call_on(Bot.on_my_chat_member)
+
+    def _call_on(self, event: Callable):
+        if event in self._on:
+            for fn in self._on[event]:
+                fn(self)
 
     def on_message_text(self):
         pass
@@ -197,17 +223,14 @@ class Bot:
     def sendMessage(self, text: str, message_thread_id: int = None, use_markdown=False,
                     reply_markup: InlineKeyboardMarkup = None, reply_parameters: ReplyParameters = None,
                     entities: list[MessageEntity] = None):
-        chat_id = None
-        if self.message:
-            chat_id = self.message.chat.id
-            if message_thread_id is None and self.message.is_topic_message:
-                message_thread_id = self.message.message_thread_id
-        elif self.callback_query:
-            chat_id = self.callback_query.message.chat.id
-            if message_thread_id is None:
-                message_thread_id = self.callback_query.message.message_thread_id
-        else:
+        if self.chat is None:
             raise Exception("tgapi: cant send message without chat id")
+        chat_id = self.chat.id
+        if message_thread_id is None:
+            if self.message and self.message.is_topic_message:
+                message_thread_id = self.message.message_thread_id
+            elif self.callback_query:
+                message_thread_id = self.callback_query.message.message_thread_id
         return sendMessage(chat_id, text, message_thread_id, use_markdown, reply_markup, reply_parameters, entities)
 
     def answerCallbackQuery(self, text: str = None, show_alert: bool = False, url: str = None, cache_time: int = 0):
@@ -221,6 +244,9 @@ class Bot:
         return answerInlineQuery(self.inline_query.id, results, cache_time, is_personal, next_offset)
 
     def on_chosen_inline_result(self):
+        pass
+
+    def on_my_chat_member(self):
         pass
 
 

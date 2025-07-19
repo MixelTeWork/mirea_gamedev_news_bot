@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Union
 
 from sqlalchemy import Column, Integer, BigInteger, String
 from sqlalchemy.orm import Session
@@ -40,11 +41,20 @@ class Broadcast(SqlAlchemyBase, IdMixin):
         return True
 
     @staticmethod
+    def add_by_chat(creator: User, chat: tgapi.Chat):
+        db_sess = Session.object_session(creator)
+        bc = Broadcast.get_by_chat(db_sess, chat.id, None)
+        if bc:
+            return False
+        Broadcast.new(creator, chat.id, None, chat.title)
+        return True
+
+    @staticmethod
     def get_by_message(db_sess: Session, msg: tgapi.Message):
         return Broadcast.get_by_chat(db_sess, msg.chat.id, msg.message_thread_id)
 
     @staticmethod
-    def get_by_chat(db_sess: Session, chat_id: int, chat_thread_id: int):
+    def get_by_chat(db_sess: Session, chat_id: int, chat_thread_id: Union[int, None]):
         return db_sess.query(Broadcast).filter((Broadcast.chat_id == chat_id) & (Broadcast.chat_thread_id == chat_thread_id)).first()
 
     @staticmethod

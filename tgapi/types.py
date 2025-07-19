@@ -154,6 +154,28 @@ class ChosenInlineResult(ParsedJson):
             return "sender", User(v)
 
 
+class ChatMember(ParsedJson):
+    # https://core.telegram.org/bots/api#chatmember
+    status: Literal["creator", "administrator", "member", "restricted", "left", "kicked"] = ""
+    user: User = None
+
+
+class ChatMemberUpdated(ParsedJson):
+    # https://core.telegram.org/bots/api#chatmemberupdated
+    chat: Chat = None
+    sender: User = None
+    date: int = 0
+    old_chat_member: ChatMember = None
+    new_chat_member: ChatMember = None
+    # invite_link: ChatInviteLink = None
+    via_join_request: bool = False
+    via_chat_folder_invite_link: bool = False
+
+    def _parse_field(self, key: str, v: Any, json):
+        if key == "from":
+            return "sender", User(v)
+
+
 class Update(ParsedJson):
     # https://core.telegram.org/bots/api#update
     __id_field__ = "update_id"
@@ -162,6 +184,7 @@ class Update(ParsedJson):
     inline_query: InlineQuery = None
     callback_query: CallbackQuery = None
     chosen_inline_result: ChosenInlineResult = None
+    my_chat_member: ChatMemberUpdated = None
 
 
 class InputMessageContent(JsonObj):
@@ -282,12 +305,6 @@ class BotCommand(JsonObj):
     def __init__(self, command: str, description: str):
         self.command = command
         self.description = description
-
-
-class ChatMember(ParsedJson):
-    # https://core.telegram.org/bots/api#chatmember
-    status: Literal["creator", "administrator", "member", "restricted", "left", "kicked"] = ""
-    user: User = None
 
 
 BotCommandScopeType = Literal["default", "all_private_chats", "all_group_chats",

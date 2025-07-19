@@ -10,8 +10,8 @@ class Bot(tgapi.Bot):
     user: User = None
 
     @staticmethod
-    def cmd_connect_db(fn):
-        def wrapped(bot: Bot, args: tgapi.BotCmdArgs, **kwargs):  # noqa: F811
+    def connect_db(fn):
+        def wrapped(bot: Bot, *args, **kwargs):  # noqa: F811
             db_sess = db_session.create_session()
             bot.db_sess = db_sess
             if bot.sender is not None:
@@ -20,7 +20,7 @@ class Bot(tgapi.Bot):
                     user = User.new_from_data(db_sess, bot.sender)
             bot.user = user
             try:
-                return fn(bot, args, **kwargs)
+                return fn(bot, *args, **kwargs)
             finally:
                 db_sess.close()
         return wrapped
