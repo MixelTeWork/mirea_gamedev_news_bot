@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Union
 from .utils import call
 from .types import *
 
@@ -13,7 +13,7 @@ def getUpdates(offset: int = 0, timeout: int = 0):
 # https://core.telegram.org/bots/api#sendmessage
 def sendMessage(chat_id: str, text: str, message_thread_id: int = None, use_markdown=False,
                 reply_markup: InlineKeyboardMarkup = None, reply_parameters: ReplyParameters = None,
-                entities: List[MessageEntity] = None, link_preview_options: LinkPreviewOptions = None):
+                entities: list[MessageEntity] = None, link_preview_options: LinkPreviewOptions = None):
     ok, r = call("sendMessage", {
         "chat_id": chat_id,
         "message_thread_id": message_thread_id,
@@ -31,7 +31,7 @@ def sendMessage(chat_id: str, text: str, message_thread_id: int = None, use_mark
 
 # https://core.telegram.org/bots/api#sendmediagroup
 def sendMediaGroup(chat_id: str, message_thread_id: int = None,
-                   media: List[InputMedia] = [], reply_parameters: ReplyParameters = None):
+                   media: list[InputMedia] = [], reply_parameters: ReplyParameters = None):
     ok, r = call("sendMediaGroup", {
         "chat_id": chat_id,
         "message_thread_id": message_thread_id,
@@ -45,7 +45,7 @@ def sendMediaGroup(chat_id: str, message_thread_id: int = None,
 
 # https://core.telegram.org/bots/api#editmessagetext
 def editMessageText(chat_id: Union[int, str], message_id: int, text: str, use_markdown=False,
-                    reply_markup: InlineKeyboardMarkup = None, entities: List[MessageEntity] = None):
+                    reply_markup: InlineKeyboardMarkup = None, entities: list[MessageEntity] = None):
     ok, r = call("editMessageText", {
         "chat_id": chat_id,
         "message_id": message_id,

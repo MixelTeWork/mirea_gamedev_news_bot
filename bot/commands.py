@@ -1,6 +1,6 @@
 from bot.bot import Bot
 from bot.utils import silent_mode
-from data.config import Config
+from data.broadcast import Broadcast
 import tgapi
 
 ME = tgapi.MessageEntity
@@ -11,8 +11,24 @@ ME = tgapi.MessageEntity
 @Bot.cmd_for_admin
 def set_news_chat(bot: Bot, args: tgapi.BotCmdArgs):
     s = silent_mode(bot, args)
-    config = Config.get(bot.db_sess)
-    config.set_chat(bot.user, bot.message.chat.id, bot.message.message_thread_id)
+    added = Broadcast.add_by_message(bot.user, bot.message)
 
     if not s:
-        return "⚙ В этот чат будут транслироваться новости"
+        if added:
+            return "⚙ В этот чат будут транслироваться новости"
+        return "⚙ В этот чат уже транслируются новости"
+
+
+@Bot.add_command("unset_news_chat", (None, ("Новости больше не будут транслироваться в данный чат", "[\\s]")))
+@Bot.cmd_connect_db
+@Bot.cmd_for_admin
+def unset_news_chat(bot: Bot, args: tgapi.BotCmdArgs):
+    s = silent_mode(bot, args)
+    bc = Broadcast.get_by_message(bot.db_sess, bot.message)
+    if bc:
+        bc.delete(bot.user)
+
+    if not s:
+        if bc:
+            return "⚙ В этот чат больше не будут транслироваться новости"
+        return "⚙ В этот чат не транслируются новости"

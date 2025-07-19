@@ -196,7 +196,7 @@ class Bot:
 
     def sendMessage(self, text: str, message_thread_id: int = None, use_markdown=False,
                     reply_markup: InlineKeyboardMarkup = None, reply_parameters: ReplyParameters = None,
-                    entities: List[MessageEntity] = None):
+                    entities: list[MessageEntity] = None):
         chat_id = None
         if self.message:
             chat_id = self.message.chat.id

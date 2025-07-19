@@ -1,13 +1,12 @@
 import math
 import re
 
+from bafser import response_msg
 from flask import Blueprint, g
-from sqlalchemy.orm import Session
-from bafser import response_msg, use_db_session
 
-from data.config import Config
-import tgapi
+from data.broadcast import Broadcast
 from utils import find
+import tgapi
 import vkapi
 
 ME = tgapi.MessageEntity
@@ -40,12 +39,7 @@ re_url = re.compile("(https?:\\/\\/)?(?:www\\.)?([-a-zA-Z0-9@:%._\\+~#=]{1,256}\
 video_text = ["первое", "второе", "третье", "четвёртое", "пятое"]
 
 
-@use_db_session()
-def on_new_post(post: vkapi.Post, db_sess: Session):
-    config = Config.get(db_sess)
-    if config.chat_id is None:
-        return
-
+def on_new_post(post: vkapi.Post):
     repost = post.copy_history[0] if len(post.copy_history) > 0 else None
     repost_attachments = repost.attachments if repost else []
 
@@ -175,22 +169,21 @@ def on_new_post(post: vkapi.Post, db_sess: Session):
             entities.append(ME.text_link(ME.len(p1), ME.len(p2), url))
 
     if len(attachments) == 0:
-        sendMessage(config, text, entities)
+        sendMessage(text, entities)
     else:
         long = len(text) >= 1024
         if not long:
             attachments[0].set_caption(text, caption_entities=entities)
-        tgapi.sendMediaGroup(config.chat_id, config.chat_thread_id, attachments)
+        Broadcast.sendMediaGroup(attachments)
         if long:
-            sendMessage(config, text, entities)
+            sendMessage(text, entities)
 
 
-def sendMessage(config: Config, text: str, entities: list[ME] = []):
+def sendMessage(text: str, entities: list[ME]):
     tlen = len(text)
     MAXL = 4096
     if tlen < MAXL:
-        tgapi.sendMessage(config.chat_id, text, config.chat_thread_id, entities=entities,
-                          link_preview_options=tgapi.LinkPreviewOptions.disable())
+        Broadcast.sendMessage(text, entities=entities, link_preview_options=tgapi.LinkPreviewOptions.disable())
         return
 
     part_start = 0
@@ -220,5 +213,4 @@ def sendMessage(config: Config, text: str, entities: list[ME] = []):
         tlen_left = tlen - part_start
         partLen = 0 if tlen_left == 0 else math.ceil(tlen_left / math.ceil(tlen_left / MAXL))
         part_end = min(part_start + partLen, tlen)
-        tgapi.sendMessage(config.chat_id, t, config.chat_thread_id, entities=ent,
-                          link_preview_options=tgapi.LinkPreviewOptions.disable())
+        Broadcast.sendMessage(t, entities=ent, link_preview_options=tgapi.LinkPreviewOptions.disable())
