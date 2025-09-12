@@ -152,6 +152,8 @@ def on_new_post(post: vkapi.Post):
             p1 = text[:m_link.start()]
             p2 = m_link.group(3)
             p3 = text[m_link.end():]
+            if m_link.group(1):
+                url, p2 = p2, url
             text = p1 + p2 + p3
             search_start = len(p1 + p2)
             if not re_url.match(url):
