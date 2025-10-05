@@ -1,17 +1,15 @@
 import math
 import re
 
-from bafser import response_msg
+import bafser_tgapi as tgapi
+from bafser import listfind, response_msg
 from flask import Blueprint, g
 
-from data.broadcast import Broadcast
-from utils import find
-import tgapi
 import vkapi
-
-ME = tgapi.MessageEntity
+from data.broadcast import Broadcast
 
 blueprint = Blueprint("vk_callback", __name__)
+ME = tgapi.MessageEntity
 
 
 @blueprint.post("/api/vk_callback")
@@ -20,7 +18,7 @@ def vk_callback():
     if not is_json:
         return response_msg("body is not json", 415)
 
-    callback = vkapi.Callback(data)
+    callback = vkapi.Callback.new(data)
     if (not vkapi.check_callback_secret(callback.secret)):
         return response_msg("wrong secret", 403)
 
@@ -28,7 +26,7 @@ def vk_callback():
         return vkapi.get_confirmation_code()
 
     if isinstance(callback.object, vkapi.Post):
-        on_new_post(callback.object)
+        tgapi.call_async(on_new_post, callback.object)
 
     return "ok"
 
@@ -58,11 +56,11 @@ def on_new_post(post: vkapi.Post):
         elif isinstance(attachment, vkapi.Doc):
             docs.append(attachment)
         if isinstance(attachment, vkapi.Photo):
-            img = (find(attachment.sizes, lambda v: v.type == "base") or
-                   find(attachment.sizes, lambda v: v.type == "z") or
+            img = (listfind(attachment.sizes, lambda v: v.type == "base") or
+                   listfind(attachment.sizes, lambda v: v.type == "z") or
                    attachment.sizes[-1])
             if img:
-                attachments.append(tgapi.InputMediaPhoto(img.url))
+                attachments.append(tgapi.InputMediaPhoto(media=img.url))
         elif isinstance(attachment, vkapi.Video):
             image = None
             for img in attachment.image:
@@ -71,31 +69,23 @@ def on_new_post(post: vkapi.Post):
             url = f"https://vk.com/video{attachment.owner_id}_{attachment.id}"
             video.append(url)
             if image:
-                attachments.append(tgapi.InputMediaPhoto(image.url))
+                attachments.append(tgapi.InputMediaPhoto(media=image.url))
 
-    text = ""
-    entities = []
+    msg = tgapi.build_msg()
 
     if len(video) > 0:
-        t = "🎞 Видео"
         if len(video) == 1:
-            entities.append(ME.text_link(ME.len(text), ME.len(t), video[0]))
-            text += t
+            msg.text_link("🎞 Видео", video[0])
         else:
-            text += t + ": "
+            msg.text("🎞 Видео: ")
             for i, url in enumerate(video):
-                if i < len(video_text):
-                    t = video_text[i]
-                else:
-                    t = f"видео#{i + 1}"
+                t = video_text[i] if i < len(video_text) else f"видео#{i + 1}"
                 if i > 0:
-                    text += ", "
-                entities.append(ME.text_link(ME.len(text), ME.len(t), video[i]))
-                text += t
-        text += "\n\n"
+                    msg.text(", ")
+                msg.text_link(t, video[i])
+        msg.text("\n\n")
 
     for link in links:
-        q = ME.len(text)
         caption = link.caption
         if caption == "":
             caption = link.url
@@ -104,31 +94,29 @@ def on_new_post(post: vkapi.Post):
             caption = caption.removeprefix("www.")
             if len(caption) > 16:
                 caption = caption[:16] + "..."
-        t = "📎 " + caption
-        entities.append(ME.text_link(ME.len(text), ME.len(t), link.url))
-        text += t
-        text += f"\n{link.title}"
-        entities.append(ME.blockquote(q, ME.len(text) - q))
-        text += "\n\n"
+        q = tgapi.build_msg()
+        q.text_link("📎 " + caption, link.url)
+        q.text(f"\n{link.title}")
+        msg.blockquote(q)
+        msg.text("\n\n")
 
     for doc in docs:
-        text += "📄 Файл: "
-        t = doc.title
-        entities.append(ME.text_link(ME.len(text), ME.len(t), doc.url))
-        text += t + "\n\n"
+        msg.text("📄 Файл: ")
+        q.text_link(doc.title, doc.url)
+        msg.text("\n\n")
 
     for poll in polls:
-        q = ME.len(text)
-        text += "📊 Опрос: "
-        t = poll.question
-        entities.append(ME.bold(ME.len(text), ME.len(t)))
-        text += t + "\n"
+        # q = ME.len(text)
+        q = tgapi.build_msg()
+        q.text("📊 Опрос: ")
+        q.bold(poll.question).text("\n")
         for i, ans in enumerate(poll.answers):
             dot = "🔸" if i % 2 == 0 else "🔹"
-            text += dot + " " + ans.text + "\n"
-        entities.append(ME.blockquote(q, ME.len(text) - q))
-        text += "\n"
+            q.text(dot + " " + ans.text + "\n")
+        msg.blockquote(q)
+        msg.text("\n")
 
+    text, entities = msg.build()
     search_start = len(text)
     text += post.text
 
@@ -160,7 +148,7 @@ def on_new_post(post: vkapi.Post):
                 url = "https://vk.com/" + url
             if re_url.match(url):
                 entities.append(ME.text_link(ME.len(p1), ME.len(p2), url))
-        else:
+        elif m_url:
             url = m_url.group(0)
             url_text = m_url.group(1)
             p1 = text[:m_url.start()]

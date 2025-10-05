@@ -1,15 +1,15 @@
+import bafser_tgapi as tgapi
+
 from bot.bot import Bot
 from bot.utils import silent_mode
 from data.broadcast import Broadcast
-import tgapi
-
-ME = tgapi.MessageEntity
 
 
-@Bot.add_command("set_news_chat", (None, ("Новости будут транслироваться в данный чат", "[\\s]")))
-@Bot.connect_db
+@Bot.add_command(desc_adm=("Новости будут транслироваться в данный чат", "[\\s]"))
 @Bot.cmd_for_admin
-def set_news_chat(bot: Bot, args: tgapi.BotCmdArgs):
+def set_news_chat(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
+    if not bot.message:
+        return
     s = silent_mode(bot, args)
     added = Broadcast.add_by_message(bot.user, bot.message)
 
@@ -19,10 +19,11 @@ def set_news_chat(bot: Bot, args: tgapi.BotCmdArgs):
         return "⚙ В этот чат уже транслируются новости"
 
 
-@Bot.add_command("unset_news_chat", (None, ("Новости больше не будут транслироваться в данный чат", "[\\s]")))
-@Bot.connect_db
+@Bot.add_command(desc_adm=("Новости больше не будут транслироваться в данный чат", "[\\s]"))
 @Bot.cmd_for_admin
-def unset_news_chat(bot: Bot, args: tgapi.BotCmdArgs):
+def unset_news_chat(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
+    if not bot.message:
+        return
     s = silent_mode(bot, args)
     bc = Broadcast.get_by_message(bot.db_sess, bot.message)
     if bc:
@@ -34,9 +35,9 @@ def unset_news_chat(bot: Bot, args: tgapi.BotCmdArgs):
         return "⚙ В этот чат не транслируются новости"
 
 
-@Bot.on(Bot.on_my_chat_member)
-@Bot.connect_db
+@Bot.on_my_chat_member
 def on_my_chat_member(bot: Bot):
+    assert bot.my_chat_member
     if bot.my_chat_member.chat.type != "channel":
         return
 

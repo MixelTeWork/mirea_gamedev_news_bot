@@ -1,2 +1,2 @@
-from .utils import setup, get_confirmation_code, check_callback_secret
 from .types import *
+from .utils import check_callback_secret, get_confirmation_code, setup

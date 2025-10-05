@@ -2,7 +2,7 @@
 ## How to run
 
 ### Requirements
-Python == 3.9.*
+Python == 3.12.*
 
 ```cmd
 python -m venv .venv
@@ -16,35 +16,22 @@ python scripts\init_values.py
 ```
 (Command can be called without requirements installed)
 
-Command will create files and folders in project root:
+Command will create files in project root:
 
-`token.txt`
+`config.txt`
 ```
-<tg bot token>
-<botname - like @mycoolbot>
-<webhook secret - random string>
-<host url>
-```
-
-`token_vk.txt`
-```
-<callback confirmation code>
-<secret key - random string>
+bot_token = <tg bot token>
+bot_name = <botname - like @mycoolbot>
+webhook_token = <webhook secret - random string>
+url = <host url>
 ```
 
-Empty folders (docker volume): `db` `images` `logs`
-
-#### Webhook configuration
-set
-```cmd
-python scripts\configureWebhook.py set
+`config_vk.txt`
 ```
-delete
-```cmd
-python scripts\configureWebhook.py delete
+confirmation_code = <callback confirmation code>
+callback_secret = <secret key - random string>
 ```
 
-(Command requires only `requests` lib)
 
 #### Настройка VK Callback
 1) Откройте управление сообществом
@@ -52,8 +39,8 @@ python scripts\configureWebhook.py delete
 3) Откройте вкладку "Callback API" и добавте сервер
     * Версия API: 5.199
     * Адрес: <хост>/api/vk_callback
-    * Отображаемый код подтверждения необходимо ввести при запуске скрипта `init_values.py` или в файл `token_vk.txt` первой строкой
-    * Секретный ключ: строка выведенная скриптом `init_values.py` (сохранена в файле `token_vk.txt` второй строкой)
+    * Отображаемый код подтверждения необходимо ввести при запуске скрипта `init_values.py` или в файл `config_vk.txt` первой строкой
+    * Секретный ключ: строка выведенная скриптом `init_values.py` (сохранена в файле `config_vk.txt` второй строкой)
     * Нажмите "Сохранить"
     * Перед нажатием "Подтвердить" включите сервер
 4) Настройте "Типы событий", активируйте пункт:
@@ -69,18 +56,13 @@ docker compose up --force-recreate --build
 
 #### Without docker
 ```cmd
-alembic upgrade head
 gunicorn 'main:app' --bind=0.0.0.0:5000
 ```
 or
 ```cmd
-alembic upgrade head
-python main.py
-```
-```cmd
 python main.py [dev] [poll]
 ```
-* dev - run in dev mode (use `token_dev.txt` instead of `token.txt`)
+* dev - run in dev mode (use `config_dev.txt` instead of `config.txt`)
 * poll - if passed run long polling to get bot updates, otherwise start flask server
 
 
@@ -88,5 +70,5 @@ python main.py [dev] [poll]
 
 #### Commands:
 
-* /help - display list of commands
 * /set_news_chat - news will be sent to chat where command was sent
+* /news_bot_version - display current bot version

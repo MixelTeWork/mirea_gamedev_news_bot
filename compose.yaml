@@ -14,12 +14,9 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - ./token.txt:/app/token.txt
-      - ./token_vk.txt:/app/token_vk.txt
-      - ./secret_key_jwt.txt:/app/secret_key_jwt.txt
-      - ./db:/app/db
-      - ./images:/app/images
-      - ./logs:/app/logs
+      - ./config.txt:/app/config.txt
+      - ./config_vk.txt:/app/config_vk.txt
+      - ./storage:/app/storage
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to

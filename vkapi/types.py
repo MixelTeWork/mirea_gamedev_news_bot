@@ -1,36 +1,38 @@
 from datetime import datetime
-from typing import Literal, Union
-from tgapi import Any, ParsedJson
+from typing import Any, Literal, Union, override
+
+from bafser import JsonObj, JsonOpt, Undefined
 
 
-class Callback(ParsedJson):
+class Callback(JsonObj):
     # https://dev.vk.com/ru/api/community-events/json-schema
     type: str = ""
     object: Any = None
     group_id: int = 0
     secret: str = ""
 
-    def _parse_field(self, key: str, v: Any, json: dict[str, Any]):
+    @override
+    def _parse(self, key: str, v: Any, json: dict[str, Any]):
         if key != "object" or "type" not in json:
             return None
         type = json["type"]
         obj = None
 
         if type == "wall_post_new":
-            obj = Post(v)
+            obj = Post.new(v)
 
-        return "object", obj
-
-
-AttachmentType = Literal["photo", "posted_photo", "video", "audio", "doc", "graffiti", "link", "note", "app",
-                         "poll", "page", "album", "photos_list", "market", "market_album", "sticker", "pretty_cards", "event"]
+        return key, obj
 
 
-class Photo(ParsedJson):
+type AttachmentType = Literal["photo", "posted_photo", "video", "audio", "doc", "graffiti", "link", "note", "app",
+                              "poll", "page", "album", "photos_list", "market", "market_album", "sticker", "pretty_cards", "event"]
+
+
+class Photo(JsonObj):
     # https://dev.vk.com/ru/reference/objects/photo
-    class Size(ParsedJson):
+    class Size(JsonObj):
         # https://dev.vk.com/ru/reference/objects/photo-sizes
-        type: Literal["s", "m", "x", "o", "p", "q", "r", "y", "z", "w"] = ""
+        type: Literal["s", "m", "x", "o", "p", "q", "r", "y", "z", "w", ""] = ""
         url: str = ""
         width: int = 0
         height: int = 0
@@ -47,20 +49,17 @@ class Photo(ParsedJson):
     width: int = 0
     height: int = 0
 
-    def _parse_field(self, key: str, v: Any, json):
-        if key == "sizes":
-            return key, [Photo.Size(el) for el in v]
 
-
-class Video(ParsedJson):
+class Video(JsonObj):
     # https://dev.vk.com/ru/reference/objects/video
-    class Image(ParsedJson):
+    class Image(JsonObj):
         height: int = 0
         width: int = 0
         url: str = ""
         with_padding: bool = False
 
-        def _parse_field(self, key: str, v: Any, json):
+        @override
+        def _parse(self, key: str, v: Any, json: dict[str, Any]):
             if key == "with_padding":
                 return key, v == 1
 
@@ -97,17 +96,18 @@ class Video(ParsedJson):
     added: bool = False
     is_subscribed: bool = False
     repeat: bool = False
-    type: Literal["video", "music_video", "movie", "story"] = ""
+    type: Literal["video", "music_video", "movie", "story", ""] = ""
     balance: int = 0
     live: bool = False
     live_start_time: int = 0
-    live_status: Literal["waiting", "started", "finished", "failed", "upcoming"] = ""
+    live_status: Literal["waiting", "started", "finished", "failed", "upcoming", ""] = ""
     upcoming: bool = False
     spectators: int = 0
     # likes: Any = None
     # reposts: Any = None
 
-    def _parse_field(self, key: str, v: Any, json):
+    @override
+    def _parse(self, key: str, v: Any, json: dict[str, Any]):
         if key in [
             "can_add",
             "is_private",
@@ -127,24 +127,22 @@ class Video(ParsedJson):
             "upcoming",
         ]:
             return key, v == 1
-        if key in ("image", "first_frame"):
-            return key, [Video.Image(el) for el in v]
 
 
-class Link(ParsedJson):
+class Link(JsonObj):
     # https://dev.vk.com/ru/reference/objects/link
     url: str = ""
     title: str = ""
     caption: str = ""
     description: str = ""
-    photo: Photo = None
+    photo: JsonOpt[Photo] = Undefined
     # product: Any = None
     # button: Any = None
     preview_page: str = ""
     preview_url: str = ""
 
 
-class Doc(ParsedJson):
+class Doc(JsonObj):
     # https://dev.vk.com/ru/reference/objects/doc
     id: int = 0
     owner_id: int = 0
@@ -157,9 +155,9 @@ class Doc(ParsedJson):
     # preview: Any = None
 
 
-class Poll(ParsedJson):
+class Poll(JsonObj):
     # https://dev.vk.com/ru/reference/objects/poll
-    class Answer(ParsedJson):
+    class Answer(JsonObj):
         id: int = 0
         text: str = ""
         votes: int = 0
@@ -182,16 +180,13 @@ class Poll(ParsedJson):
     can_report: bool = False
     can_share: bool = False
     author_id: int = 0
-    photo: Photo = None
+    photo: JsonOpt[Photo] = Undefined
     # background: Any = None
     friends: list[int] = []
 
-    def _parse_field(self, key: str, v: Any, json):
-        if key == "answers":
-            return key, [Poll.Answer(el) for el in v]
 
-
-class Post(ParsedJson):
+class Post(JsonObj):
+    __datetime_parser__ = datetime.fromtimestamp
     # https://dev.vk.com/ru/reference/objects/post
     id: int = 0
     owner_id: int = 0
@@ -207,7 +202,7 @@ class Post(ParsedJson):
     # likes: Any = None
     # reposts: Any = None
     # views: Any = None
-    post_type: Literal["post", "copy", "reply", "postpone", "suggest"] = ""
+    post_type: Literal["post", "copy", "reply", "postpone", "suggest", ""] = ""
     # post_source: Any = None
     attachments: list[Union[Photo, Video, Link, Doc, Poll]] = []
     # geo: Any = None
@@ -222,7 +217,8 @@ class Post(ParsedJson):
     # donut: Any = None
     postponed_id: int = 0
 
-    def _parse_field(self, key: str, v: Any, json):
+    @override
+    def _parse(self, key: str, v: Any, json: dict[str, Any]):
         if key in [
             "friends_only",
             "can_pin",
@@ -233,25 +229,19 @@ class Post(ParsedJson):
         ]:
             return key, v == 1
 
-        if key == "copy_history":
-            return key, [Post(el) for el in v]
-
-        if key == "date":
-            return key, datetime.fromtimestamp(v)
-
         if key == "attachments":
             attachments = []
             for attachment in v:
                 atype: AttachmentType = attachment["type"]
                 data = attachment[atype]
                 if atype == "photo":
-                    attachments.append(Photo(data))
+                    attachments.append(Photo.new(data))
                 elif atype == "video":
-                    attachments.append(Video(data))
+                    attachments.append(Video.new(data))
                 elif atype == "link":
-                    attachments.append(Link(data))
+                    attachments.append(Link.new(data))
                 elif atype == "doc":
-                    attachments.append(Doc(data))
+                    attachments.append(Doc.new(data))
                 elif atype == "poll":
-                    attachments.append(Poll(data))
+                    attachments.append(Poll.new(data))
             return key, attachments

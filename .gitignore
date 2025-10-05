@@ -1,6 +1,9 @@
 token.txt
 token_dev.txt
 token_vk.txt
+config.txt
+config_dev.txt
+config_vk.txt
 
 .venv
 venv/
@@ -10,3 +13,5 @@ logs/
 db/
 /images
 secret_key_jwt.txt
+storage/*
+!.gitkeep

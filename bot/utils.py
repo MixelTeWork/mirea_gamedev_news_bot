@@ -1,5 +1,6 @@
+import bafser_tgapi as tgapi
+
 from bot.bot import Bot
-import tgapi
 
 
 def silent_mode(bot: Bot, args: tgapi.BotCmdArgs):

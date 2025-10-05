@@ -7,10 +7,14 @@
 token.txt
 token_dev.txt
 token_vk.txt
+config.txt
+config_dev.txt
+config_vk.txt
 secret_key_jwt.txt
 logs/
 db/
 images/
+storage/
 
 **/.DS_Store
 **/__pycache__

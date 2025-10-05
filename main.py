@@ -1,34 +1,23 @@
 import sys
+
+import bafser_tgapi as tgapi
 from bafser import AppConfig, create_app
-# from scripts.init_values import init_values
-from bot.main import process_update, setup_bot
-import tgapi
+
 import vkapi
+from bot.bot import Bot
 
-DEV_MODE = "dev" in sys.argv
-RUN = __name__ == "__main__"
-RUN_BOT_LONG_POLL = RUN and "poll" in sys.argv
-RUN_FLASK_SERVER = RUN and not RUN_BOT_LONG_POLL
-
-tgapi.setup("token_dev.txt" if DEV_MODE else "token.txt")
+app, run = create_app(__name__, AppConfig(DEV_MODE="dev" in sys.argv))
+tgapi.setup(botCls=Bot, app=app)
 vkapi.setup()
-setup_bot()
-app, run = create_app(__name__, AppConfig(
-    DEV_MODE=DEV_MODE,
-))
 
+RUN = __name__ == "__main__"
+RUN_SERVER = RUN and "poll" not in sys.argv
+if RUN_SERVER:
+    tgapi.set_webhook()
+run(RUN_SERVER, port=5000)
 
-# run(False, lambda: init_values(True))
-run(RUN_FLASK_SERVER, port=5000)
-
-if RUN_BOT_LONG_POLL:
-    print("listening for updates...")
-    update_id = -1
-    while True:
-        ok, updates = tgapi.getUpdates(update_id + 1, 60)
-        if not ok:
-            print("Error!", updates)
-            break
-        for update in updates:
-            update_id = max(update_id, update.update_id)
-            process_update(update)
+if not RUN_SERVER:
+    if RUN:
+        tgapi.run_long_polling()
+    else:
+        tgapi.set_webhook()

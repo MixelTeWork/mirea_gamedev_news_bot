@@ -4,7 +4,7 @@
 # If you need more help, visit the Dockerfile reference guide at
 # https://docs.docker.com/engine/reference/builder/
 
-ARG PYTHON_VERSION=3.9
+ARG PYTHON_VERSION=3.12
 FROM python:${PYTHON_VERSION}-slim AS base
 
 # Prevents Python from writing pyc files.
@@ -46,4 +46,4 @@ COPY . .
 EXPOSE 5000
 
 # Run the application.
-CMD ["bash", "-c", "alembic upgrade head && gunicorn 'main:app' --bind=0.0.0.0:5000"]
+CMD ["gunicorn", "'main:app'", "--bind=0.0.0.0:5000"]
