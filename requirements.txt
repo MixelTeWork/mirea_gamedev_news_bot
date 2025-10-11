@@ -1,2 +1,2 @@
-bafser-tgapi==1.6.2
+bafser-tgapi==1.7.0
 gunicorn
