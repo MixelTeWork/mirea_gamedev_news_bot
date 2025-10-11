@@ -26,7 +26,10 @@ def vk_callback():
         return vkapi.get_confirmation_code()
 
     if isinstance(callback.object, vkapi.Post):
-        tgapi.call_async(on_new_post, callback.object)
+        post = callback.object
+        if post.post_type not in ("post", "copy", "reply"):
+            return "ok"
+        tgapi.call_async(on_new_post, post)
 
     return "ok"
 
