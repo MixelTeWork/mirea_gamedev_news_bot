@@ -24,6 +24,7 @@ bot_token = <tg bot token>
 bot_name = <botname - like @mycoolbot>
 webhook_token = <webhook secret - random string>
 url = <host url>
+quest_room = <id of tg supergroup>
 ```
 
 `config_vk.txt`
@@ -71,4 +72,5 @@ python main.py [dev] [poll]
 #### Commands:
 
 * /set_news_chat - news will be sent to chat where command was sent
+* /unset_news_chat - cancel news sending in the current chat
 * /news_bot_version - display current bot version

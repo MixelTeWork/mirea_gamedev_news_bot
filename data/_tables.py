@@ -2,6 +2,8 @@ from bafser import TablesBase
 
 
 class Tables(TablesBase):
+    Broadcast = "Broadcast"
     Config = "Config"
     Msg = "Msg"
-    Broadcast = "Broadcast"
+    Quest = "Quest"
+    UserQuest = "UserQuest"

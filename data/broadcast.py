@@ -3,12 +3,11 @@ from __future__ import annotations
 from typing import Optional, Union
 
 import bafser_tgapi as tgapi
-from bafser import IdMixin, Log, SqlAlchemyBase, Undefined, UserBase, use_db_sess, get_db_session
+from bafser import IdMixin, Log, SqlAlchemyBase, Undefined, get_db_session, use_db_sess
 from sqlalchemy import BigInteger, String
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from data._tables import Tables
-from data.user import User
 
 
 class Broadcast(SqlAlchemyBase, IdMixin):

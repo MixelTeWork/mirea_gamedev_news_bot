@@ -6,7 +6,7 @@ from bafser import AppConfig, create_app
 import vkapi
 from bot.bot import Bot
 
-app, run = create_app(__name__, AppConfig(DEV_MODE="dev" in sys.argv))
+app, run = create_app(__name__, AppConfig(DEV_MODE="dev" in sys.argv, FRONTEND_FOLDER="frontend"))
 tgapi.setup(botCls=Bot, app=app)
 vkapi.setup()
 
