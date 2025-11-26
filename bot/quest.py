@@ -3,8 +3,11 @@ from bafser import Undefined
 
 from bot.bot import Bot
 from bot.utils import silent_mode
+from data.broadcast import Broadcast
 from data.quest import Quest
+from data.user import User
 from data.user_quest import UserQuest
+from utils import num_noun
 
 
 @Bot.add_command()
@@ -38,7 +41,7 @@ def quest_points(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
     # xp = UserQuest.get_user_points(bot.user)
     txt = f"✨ Ваш текущий XP: {xp}"
     if len(quests) > 0:
-        txt += "\nЗавершенные квесты:\n" + "\n".join(f"• {q.name} ({q.reward} xp)" for q in quests)
+        txt += "\n\nЗавершенные квесты:\n" + "\n".join(f"• {q.name} ({q.reward} xp)" for q in quests)
     bot.sendMessage(txt, reply_markup=tgapi.reply_markup(
         [("Обновить ✨", "quest_points")],
     ))
@@ -76,7 +79,7 @@ def on_forum_topic_created(bot: Bot):
     txt = f"Квест {q.name} создан!\n\n" + \
         f"Награда: {q.reward} xp\nИзменить награду: /set_reward <целое число>"
     bot.sendMessage(txt, reply_markup=tgapi.reply_markup(
-        [tgapi.InlineKeyboardButton.open_url("Открыть сканер", tgapi.utils.url + f"scanner?uid={bot.user.id_big}&id={q.id}")],
+        [tgapi.InlineKeyboardButton.open_url("Открыть сканер", tgapi.utils.url + f"scanner?rid={bot._quest_room_id}&id={q.id}")],
     ))
 
 
@@ -92,11 +95,37 @@ def on_forum_topic_edited(bot: Bot):
         txt = f"Квест {q.name} создан!\n\n" + \
             f"Награда: {q.reward} xp\nИзменить награду: /set_reward <целое число>"
         bot.sendMessage(txt, reply_markup=tgapi.reply_markup(
-            [tgapi.InlineKeyboardButton.open_url("Открыть сканер", tgapi.utils.url + f"scanner?uid={bot.user.id_big}&id={q.id}")],
+            [tgapi.InlineKeyboardButton.open_url("Открыть сканер", tgapi.utils.url + f"scanner?rid={bot._quest_room_id}&id={q.id}")],
         ))
     else:
         old_name = q.name
         q.update_name(bot.message.forum_topic_edited.name)
         bot.sendMessage(f"Название квеста изменено: {old_name} -> {q.name}", reply_markup=tgapi.reply_markup([
-            tgapi.InlineKeyboardButton.open_url("Открыть сканер", tgapi.utils.url + f"scanner?uid={bot.user.id_big}&id={q.id}"),
+            tgapi.InlineKeyboardButton.open_url("Открыть сканер", tgapi.utils.url + f"scanner?rid={bot._quest_room_id}&id={q.id}"),
         ]))
+
+
+@Bot.add_command()
+@Bot.cmd_for_quest
+def stats(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
+    uqs = list(UserQuest.all2())
+    user_quest_count: dict[int, int] = {}
+    for uq in uqs:
+        if uq.user_id not in user_quest_count:
+            user_quest_count[uq.user_id] = 0
+        user_quest_count[uq.user_id] += 1
+    quest_counts: dict[int, int] = {}
+    for uid, uqc in user_quest_count.items():
+        if uqc not in quest_counts:
+            quest_counts[uqc] = 0
+        quest_counts[uqc] += 1
+
+    txt = f"Запустивших бота: {User.query2().count() - 1}\n"
+    txt += f"Подписавшихся: {Broadcast.query2().filter(Broadcast.chat_id > 0).count()}\n"
+    txt += f"Всего игроков: {len(user_quest_count.keys())}\n\n"
+    txt += "Кол-во игроков, выполневших квесты:\n"
+    txt += "\n".join(f"  {qc} {num_noun(qc, "квест", "квеста", "квестов")} "
+                     f"{num_noun(uc, "выполнил", "выполнили", "выполнили")} {uc} {num_noun(uc, "игрок", "игрока", "игроков")}" for qc,
+                     uc in sorted(quest_counts.items(), key=lambda x: x[0]))
+
+    return txt
