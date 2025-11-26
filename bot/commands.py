@@ -53,3 +53,32 @@ def on_my_chat_member(bot: Bot):
         bc = Broadcast.get_by_chat(bot.my_chat_member.chat.id, None)
         if bc:
             bc.delete()
+
+
+@Bot.add_command()
+def subscribe(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
+    if not bot.chat or bot.chat.type != "private":
+        return
+    added = Broadcast.add_by_chat(bot.chat)
+    if added:
+        txt = "📨 Вы подписались на новости!"
+    else:
+        txt = "📨 Вы уже подписаны на новости!"
+    bot.sendMessage(txt, reply_markup=tgapi.reply_markup(
+        [("🔇 Отписаться", "unsubscribe")],
+    ))
+
+
+@Bot.add_command()
+def unsubscribe(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
+    if not bot.chat or bot.chat.type != "private":
+        return
+    bc = Broadcast.get_by_chat(bot.chat.id, None)
+    if bc:
+        bc.delete()
+        txt = "🔇 Вы отписались от новостей."
+    else:
+        txt = "🔇 Вы не подписаны на новости."
+    bot.sendMessage(txt, reply_markup=tgapi.reply_markup(
+        [("📨 Подписаться", "subscribe")],
+    ))

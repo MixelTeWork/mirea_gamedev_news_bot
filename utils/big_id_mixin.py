@@ -8,7 +8,7 @@ T = TypeVar("T", bound="BigIdMixin")
 
 
 class BigIdMixin:
-    id_big: Mapped[str] = mapped_column(String(8), unique=True, index=True, init=False)
+    id_big: Mapped[str] = mapped_column(String(16), unique=True, index=True, init=False)
 
     @classmethod
     def get_by_big_id(cls: Type[T], db_sess: Session, id_big: str, includeDeleted=False) -> T | None:
@@ -24,7 +24,7 @@ class BigIdMixin:
     def set_unique_big_id(self, db_sess: Session):
         t = self
         while t is not None:
-            id_big = randstr(8)
+            id_big = randstr(16)
             t = self.get_by_big_id(db_sess, id_big, includeDeleted=True)
         self.id_big = id_big  # pyright: ignore[reportPossiblyUnboundVariable]
 

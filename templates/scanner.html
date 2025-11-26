@@ -28,6 +28,7 @@
         .video {
             flex-grow: 1;
             width: 100%;
+            min-height: 0;
             background-color: black;
         }
         .video div,
@@ -40,18 +41,100 @@
             position: fixed;
             bottom: 1rem;
             left: 50%;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 0.5rem;
             transform: translateX(-50%);
-            background-color: #ffffffb6;
-            padding: 1rem;
-            border-radius: 0.5rem;
             pointer-events: none;
             user-select: none;
-            transition: opacity 250ms;
+        }
+        .popup > div {
+            padding: 1rem;
+            background-color: #ffffffb6;
+            border-radius: 0.5rem;
+            transition: opacity 500ms;
             opacity: 0;
         }
         .popup-open {
+            opacity: 1 !important;
+        }
+
+        .loader-container {
+            position: fixed;
+            z-index: 10;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000000aa;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 500ms ease, visibility 0ms 500ms;
+        }
+        .loader-container.visible {
+            transition: opacity 500ms ease, visibility 0ms 0ms;
+            visibility: visible;
             opacity: 1;
         }
+    </style>
+    <style>
+        .loader {
+          width: 48px;
+          height: 48px;
+          margin: auto;
+          position: relative;
+        }
+        .loader:before {
+            content: '';
+            width: 48px;
+            height: 5px;
+            background: #000;
+            opacity: 0.25;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            border-radius: 50%;
+            animation: shadow 0.5s linear infinite;
+          }
+          .loader:after {
+            content: '';
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            animation: bxSpin 0.5s linear infinite;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 4px;
+          }
+        @keyframes bxSpin {
+          17% {
+            border-bottom-right-radius: 3px;
+          }
+          25% {
+            transform: translateY(9px) rotate(22.5deg);
+          }
+          50% {
+            transform: translateY(18px) scale(1, .9) rotate(45deg);
+            border-bottom-right-radius: 40px;
+          }
+          75% {
+            transform: translateY(9px) rotate(67.5deg);
+          }
+          100% {
+            transform: translateY(0) rotate(90deg);
+          }
+        }
+
+        @keyframes shadow {
+          0%, 100% {
+            transform: scale(1, 1);
+          }
+          50% {
+            transform: scale(1.2, 1);
+          }
+        }
+
     </style>
 </head>
 <body>
@@ -62,23 +145,25 @@
             <video id="video"></video>
         </div>
     </div>
-    <div class="popup" id="popup">popup</div>
+    <div class="popup popup-hidden" id="popup"></div>
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
     <script>
         const popup = document.getElementById("popup");
-        let timeout = null;
+        const loader = document.getElementById("loader");
         function showPopup(msg) {
-            popup.innerText = msg;
-            popup.classList.add("popup-open");
-            if (timeout) {
-                clearTimeout(timeout);
-                timeout = null;
-            }
-            timeout = setTimeout(() => popup.classList.remove("popup-open"), 1000);
+            const el = document.createElement("div");
+            popup.appendChild(el)
+            el.innerText = msg;
+            setTimeout(() => el.classList.add("popup-open"));
+            setTimeout(() => el.classList.remove("popup-open"), 8000);
+            setTimeout(() => popup.removeChild(el), 8500);
         }
 
         const qrScanner = new QrScanner(
             document.getElementById("video"),
-            result => showPopup('decoded qr code:\n' + result.data),
+            result => onDecode(result.data),
             { highlightScanRegion: true, maxScansPerSecond: 10 },
         );
 
@@ -88,7 +173,37 @@
             {
                 qrScanner.start().catch(() => showPopup("Нет доступа к камере\nРазрешите использование камеры этому сайту и браузеру, который вы используте."));
             }, 250);
-        })
+        });
+
+        let lastDecode = "";
+        let fetching = false;
+        async function onDecode(data) {
+            if (data == lastDecode || fetching) return;
+            lastDecode = data;
+            fetching = true;
+            loader.classList.toggle("visible", fetching);
+            try {
+                const r = await fetch("/api/scanner", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        data,
+                        qid: "{{quest.id}}",
+                        uid: "{{user.id_big}}"
+                    }),
+                });
+                const res = await r.text();
+                showPopup(res);
+            } catch (e) {
+                showPopup("Произошла ошибка :(\n" + e)
+            }
+            finally {
+                fetching = false;
+                loader.classList.toggle("visible", fetching);
+            }
+        }
     </script>
 </body>
 </html>

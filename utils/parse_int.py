@@ -1,4 +1,4 @@
-def parse_int(v: str, default: int | None = None):
+def parse_int[T](v: str, default: T = None) -> int | T:
     try:
         return int(v)
     except Exception:

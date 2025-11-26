@@ -1,2 +1,4 @@
 bafser-tgapi==1.8.0
+qrcode
+Pillow
 gunicorn

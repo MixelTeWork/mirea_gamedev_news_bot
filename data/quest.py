@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from bafser import IdMixin, Log, SqlAlchemyBase
@@ -14,6 +15,7 @@ class Quest(SqlAlchemyBase, IdMixin):
     chat_id: Mapped[int] = mapped_column(BigInteger)
     chat_thread_id: Mapped[int]
     reward: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, init=False)
 
     @staticmethod
     def new(name: str, chat_id: int, chat_thread_id: int):

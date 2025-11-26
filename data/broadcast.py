@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Optional, Union
 
 import bafser_tgapi as tgapi
@@ -16,6 +17,7 @@ class Broadcast(SqlAlchemyBase, IdMixin):
     chat_id: Mapped[int] = mapped_column(BigInteger)
     chat_thread_id: Mapped[Optional[int]]
     title: Mapped[str] = mapped_column(String(256))
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, init=False)
 
     @staticmethod
     def new(chat_id: int, chat_thread_id: int | None, title: str):
