@@ -38,4 +38,4 @@ class Bot(tgapi.BotWithDB[User]):
 
 @Bot.add_command()
 def news_bot_version(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
-    return "ℹ news bot version: 3.0"
+    return "ℹ news bot version: 3.1"

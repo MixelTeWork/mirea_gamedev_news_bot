@@ -5,8 +5,10 @@ import qrcode
 from bafser import JsonObj
 from flask import Blueprint, render_template, request, send_file
 
+from bot.bot import Bot
 from data.quest import Quest
 from data.user import User
+from data.user_points import UserPoints
 from data.user_quest import UserQuest
 from utils import parse_int
 
@@ -28,6 +30,18 @@ def scanner():
         return "Wrong rid", 403
 
     return render_template("scanner.html", rid=rid, quest=quest)
+
+
+@bp.route("/scanner_minus")
+def scanner_minus():
+    rid = request.args.get("rid")
+    value = parse_int(request.args.get("v") or "")
+    if not rid or not value:
+        return "Missing parameters", 400
+    if rid != Bot._quest_room_id:
+        return "Wrong rid", 403
+
+    return render_template("scanner_minus.html", rid=rid, value=value)
 
 
 class ScannerData(JsonObj):
@@ -53,10 +67,37 @@ def api_scanner():
         return f"Квест уже был засчитан ранее для {user.get_tagname()}"
 
     txt = f"🎉 Вы выполнили квест {quest.name}!\n"
-    xp = UserQuest.get_user_points(user)
+    xp = UserQuest.get_user_points(user) + UserPoints.get_user_points(user)
     txt += f"✨ XP +{quest.reward}\n  {xp - quest.reward} -> {xp}"
     tgapi.call_async(tgapi.sendMessage, user.id_tg, txt)
     return f"Квест засчитан для {user.get_tagname()}"
+
+
+class ScannerMinusData(JsonObj):
+    data: str
+    value: str
+    rid: str
+
+
+@bp.post("/api/scanner_minus")
+def api_scanner_minus():
+    data = ScannerMinusData.get_from_req()
+    user = User.get_by_big_id2(data.data)
+    if not user:
+        return "User not found", 400
+    value = parse_int(data.value, 0)
+    if data.rid != Bot._quest_room_id:
+        return "Wrong rid", 403
+
+    xp_old = UserQuest.get_user_points(user) + UserPoints.get_user_points(user)
+    if xp_old < value:
+        return f"У {user.get_tagname()} недостаточно xp: {xp_old} < {value}"
+
+    UserPoints.new(user.id, -value)
+    xp = UserQuest.get_user_points(user) + UserPoints.get_user_points(user)
+    txt = f"✨ XP -{value}\n  {xp + value} -> {xp}"
+    tgapi.call_async(tgapi.sendMessage, user.id_tg, txt)
+    return f"Списано {value} у {user.get_tagname()}"
 
 
 @bp.route("/qr")

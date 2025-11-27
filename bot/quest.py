@@ -6,8 +6,9 @@ from bot.utils import silent_mode
 from data.broadcast import Broadcast
 from data.quest import Quest
 from data.user import User
+from data.user_points import UserPoints
 from data.user_quest import UserQuest
-from utils import num_noun
+from utils import num_noun, parse_int
 
 
 @Bot.add_command()
@@ -38,10 +39,13 @@ def quest_points(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
     xp = 0
     for q in quests:
         xp += q.reward
-    # xp = UserQuest.get_user_points(bot.user)
+    minus = UserPoints.get_user_points(bot.user)
+    xp += minus
     txt = f"✨ Ваш текущий XP: {xp}"
     if len(quests) > 0:
         txt += "\n\nЗавершенные квесты:\n" + "\n".join(f"• {q.name} ({q.reward} xp)" for q in quests)
+    if minus != 0:
+        txt += f"\n\nПотрачено xp: {-minus}"
     bot.sendMessage(txt, reply_markup=tgapi.reply_markup(
         [("Обновить ✨", "quest_points")],
     ))
@@ -58,8 +62,25 @@ def set_reward(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
     if len(args) != 1:
         return "Usage: /set_reward <reward>"
     old_reward = q.reward
-    q.set_reward(int(args[0]))
-    return f"Награда за квест успешно изменена: {old_reward} -> {q.reward}"
+    reward = parse_int(args[0])
+    if reward is None:
+        return "Reward must be int"
+    q.set_reward(reward)
+    return f"Награда за квест успешно изменена: {old_reward} -> {reward}"
+
+
+@Bot.add_command()
+@Bot.cmd_for_quest
+def scan_minus(bot: Bot, args: tgapi.BotCmdArgs, **_: str):
+    if len(args) != 1:
+        return "Usage: /scan_minus <value>"
+    value = parse_int(args[0])
+    if value is None:
+        return "Value must be int"
+    txt = f"Списание {value} {num_noun(value, "балла", "баллов", "баллов")}"
+    bot.sendMessage(txt, reply_markup=tgapi.reply_markup(
+        [tgapi.InlineKeyboardButton.open_url("Открыть сканер", tgapi.utils.url + f"scanner_minus?rid={bot._quest_room_id}&v={value}")],
+    ))
 
 
 @Bot.add_command()
