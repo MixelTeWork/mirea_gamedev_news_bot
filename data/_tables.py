@@ -6,5 +6,4 @@ class Tables(TablesBase):
     Config = "Config"
     Msg = "Msg"
     Quest = "Quest"
-    UserPoints = "UserPoints"
     UserQuest = "UserQuest"
